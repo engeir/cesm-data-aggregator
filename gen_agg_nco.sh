@@ -122,6 +122,13 @@ fi
 
 # Loop over attributes
 for attr in "${ATTRS[@]}"; do
+    # Check if the file exists. If yes, skip to the next, but notify the user.
+    if test -f "$SAVEDIR$attr$OUTPUT.nc"; then
+        echo "$SAVEDIR$attr$OUTPUT.nc exists."
+        continue
+    else
+        echo "Creating $SAVEDIR$attr$OUTPUT.nc..."
+    fi
     if [[ -z "$EXISTING" ]]; then
         # If we create a brand new file.
         ncrcat -4 -o "$SAVEDIR$attr$OUTPUT.nc" -v "$attr" "${INPUTS_EXP[@]}"
