@@ -7,7 +7,7 @@
 #SBATCH --account=nn9817k
 #
 # Wall time limit:
-#SBATCH --time=00-00:50:00
+#SBATCH --time=00-01:50:00
 #
 # Other parameters:
 #SBATCH --partition=bigmem
@@ -32,10 +32,10 @@ DIRS=$(ls -d ./*/atm/hist)
 # Or define a custom set of dirs (but this is more easily done inside the loop, in the
 # "case" statement):
 # DIRS="one\ntwo"
-VAR="-a FLNT -a FSNT"
+VAR="-a TREFHT -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a so4_a1 -a so4_a2 -a so4_a3 -a TROP_P -a U"
 FREQ="h0"
 # Relevant variables for h0:
-#   -a TREFHT -a SST -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a so4_a1 -a so4_a2 -a so4_a3 -a U
+#   -a TREFHT -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a so4_a1 -a so4_a2 -a so4_a3 -a TROP_P -a U
 # Relevant variables for h1:
 #   -a TREFHT -a AODVISstdn -a FLNT -a FSNT
 
