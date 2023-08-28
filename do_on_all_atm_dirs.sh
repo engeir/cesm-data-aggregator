@@ -17,7 +17,7 @@
 # Run as sbatch ./do_on_all_atm_dirs.sh
 # srun --nodes=1 --time=00:55:00 --partition=bigmem --mem=10G --account=nn9817k --pty bash -i
 
-set -o errexit # Exit the script on any error
+# set -o errexit # Exit the script on any error
 set -o nounset # Treat any unset variables as an error
 
 # Load modules

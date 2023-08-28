@@ -124,10 +124,10 @@ fi
 for attr in "${ATTRS[@]}"; do
     # Check if the file exists. If yes, skip to the next, but notify the user.
     if test -f "$SAVEDIR$attr$OUTPUT.nc"; then
-        echo "$SAVEDIR$attr$OUTPUT.nc exists."
+        echo "$(date '+%Y%m%d-%H:%M:%S') $SAVEDIR$attr$OUTPUT.nc exists."
         continue
     else
-        echo "Creating $SAVEDIR$attr$OUTPUT.nc..."
+        echo "$(date '+%Y%m%d-%H:%M:%S') Creating $SAVEDIR$attr$OUTPUT.nc..."
     fi
     if [[ -z "$EXISTING" ]]; then
         # If we create a brand new file.
