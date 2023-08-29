@@ -89,7 +89,7 @@ if [[ -z "${ATTRS[0]}" || "${#INPUTS[@]}" -eq 0 ]]; then
 fi
 
 # Expand inputs if asterisk is given
-for in_file in ${INPUTS[@]}; do
+for in_file in "${INPUTS[@]}"; do
     shopt -s nullglob
     INPUTS_EXP+=($in_file)
     shopt -u nullglob
