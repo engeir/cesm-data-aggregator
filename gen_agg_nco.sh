@@ -112,6 +112,20 @@ if ! are_files_in_same_directory "${INPUTS_EXP[0]}"; then
     echo "Error: Files in the \`-i\` option are not in the same directory."
     exit 0
 fi
+
+# If the asterisk syntax is used, but the files do not exist (no match), we are left
+# with an empty INPUTS_EXP variable, so we check if it is empty again
+if [[ "${#INPUTS_EXP[@]}" -eq 0 ]]; then
+    echo "Error: No files matching the input files provided with the \`-i\` option could be found."
+    exit 0
+fi
+for found_files in "${INPUTS_EXP[@]}"; do
+    if [[ ! -f "$found_files" ]]; then
+        echo "Error: I cannot find the file $found_files"
+        exit 0
+    fi
+done
+
 SAVEDIR="$(dirname "${INPUTS_EXP[0]}")/"
 
 if [[ -z "$OUTPUT" ]]; then
