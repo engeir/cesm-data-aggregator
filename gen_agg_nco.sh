@@ -134,6 +134,29 @@ fi
 
 # DONE CHECKING THE INPUTS AND STUFF, LETS IMPLEMENT THE PROGRAM --------------------- #
 
+# Function that checks if the input files and the existing file (specified with the -x
+# option) have overlapping time ranges.
+check_time_ranges() {
+    # Last time of first file
+    last_time_1=$(ncdump "$1" -i -v time | sed -e '1,/data:/d' -e '$d' | tail -1 | awk '{print $(NF-1)}' | tr -d '",')
+    last_time_1_2=$(ncdump "$1" -i -v time | sed -e '1,/data:/d' -e '$d' | sed 2q | tail -1 | awk '{print $3}' | tr -d '",')
+    last_time_2=$(ncdump "$2" -i -v time | sed -e '1,/data:/d' -e '$d' | sed 2q | tail -1 | awk '{print $3}' | tr -d '",')
+    last_time_3=$(ncdump "$3" -i -v time | sed -e '1,/data:/d' -e '$d' | tail -1 | awk '{print $(NF-1)}' | tr -d '",')
+    last_time_1_float="$(date -d "$last_time_1" +%s)"
+    last_time_2_float="$(date -d "$last_time_2" +%s)"
+    if [[ "$last_time_1_float" -ge "$last_time_2_float" ]]; then
+        echo "    Error: The file you want to extend with the \`-x\` option has end time sooner"
+        echo "    than the earliest time of the input files; THEY MIGHT OVERLAP. Make sure the"
+        echo "    input files are given in the correct order, and fix the issue manually."
+        echo "    Last time of $1: $last_time_1 (first time: $last_time_1_2)"
+        echo "    First time of inputs ($2): $last_time_2"
+        echo "    Last time of inputs ($3): $last_time_3"
+        return 1
+    else
+        return 0
+    fi
+}
+
 # Loop over attributes
 for attr in "${ATTRS[@]}"; do
     # Check if the file exists. If yes, skip to the next, but notify the user.
@@ -149,6 +172,10 @@ for attr in "${ATTRS[@]}"; do
     else # -- or --
         # If we create an output file that should be the extension of a previously made
         # file.
+        # Let us first check if the input files and original files have a time overlap.
+        if ! check_time_ranges "$SAVEDIR$attr$EXISTING.nc" "${INPUTS_EXP[0]}" "${INPUTS_EXP[-1]}"; then
+            continue
+        fi
         ncrcat -4 -o "$SAVEDIR$attr$OUTPUT.nc" -v "$attr" "${INPUTS_EXP[@]}"
         ncrcat -4 -o "$SAVEDIR"output-combined.nc -v "$attr" "$SAVEDIR$attr$EXISTING.nc" "$SAVEDIR$attr$OUTPUT.nc"
         rm "$SAVEDIR$attr$OUTPUT.nc"
