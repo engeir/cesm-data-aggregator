@@ -166,6 +166,12 @@ for attr in "${ATTRS[@]}"; do
     else
         echo "$(date '+%Y%m%d-%H:%M:%S') Creating $SAVEDIR$attr$OUTPUT.nc..."
     fi
+    # Let us make sure the existing file, the file we want to extend, actually exists.
+    if [[ ! -f "$SAVEDIR$attr$EXISTING.nc" ]]; then
+        echo "$(date '+%Y%m%d-%H:%M:%S') The file $SAVEDIR$attr$EXISTING.nc does not exist, so"
+        echo "    I cannot expand it. Instead, I am creating $SAVEDIR$attr$OUTPUT.nc."
+        EXISTING=""
+    fi
     if [[ -z "$EXISTING" ]]; then
         # If we create a brand new file.
         ncrcat -4 -o "$SAVEDIR$attr$OUTPUT.nc" -v "$attr" "${INPUTS_EXP[@]}"

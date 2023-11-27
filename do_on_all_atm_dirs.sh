@@ -72,10 +72,10 @@ for p in $DIRS; do
     # save it as well, and instead specify the date ourselves (above).
     cd "$p" || exit 1
     echo "Moving into $PWD"
-    echo "$HERE"/gen_agg_nco.sh "$VAR" -i \""$tmpdir"*cam."$FREQ"*\" -o "$OUTPUT"
+    echo "$HERE"/gen_agg_nco.sh "$VAR" -i \""$tmpdir"*cam."$FREQ"*\" -o "$OUTPUT" -x -"$FREQ"-20230828
     # We need to allow word splitting of $VAR so that they are treated as two separate
     # attributes in the command.
-    "$HERE"/gen_agg_nco.sh $VAR -i "$tmpdir*cam.$FREQ*" -o "$OUTPUT"
+    "$HERE"/gen_agg_nco.sh $VAR -i "$tmpdir*cam.$FREQ*" -o "$OUTPUT" -x -"$FREQ"-20230828
     cd - 1>/dev/null || exit 1 && echo "Going back to $PWD"
     echo ""
 done
