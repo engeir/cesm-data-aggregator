@@ -1,27 +1,31 @@
 #!/bin/bash
 
-# If any of the options are not provided, exit with exit status 0 and print a helpful
-# message to the user, telling them how they just tried to use it, and how it is
-# intended to be used.
+# If no options are not provided, exit with exit status 0 and print a helpful message to
+# the user, telling them how they just tried to use it, and how it is intended to be
+# used.
 
 # Initialize variables to store option values
 OUTPUT=""
+UNIQUE=""
 EXISTING=""
 ATTRS=()
 INPUTS=()
 
 # Usage function
 usage() {
-    echo "Usage: $0 -o <filename> -a <attr1> [-a <attr2> ...] -i <file1> [-i <file2> ...] [-h]"
+    echo "Usage: $0 -o <filename> -u <unique> -a <attr1> [-a <attr2> ...] -i <file1> [-i <file2> ...] [-h]"
     echo
     echo "Generate aggregated netCDF files, one for each attribute, from a list of time-stamped input files that all"
     echo "include the provided attributes / variables."
     echo
-    echo "The files are save as <ATTR><OUTPUT>.nc or <ATTR>YYYYMMDD.nc if the \`o\` option is not provided"
+    echo "The files are save as <filename><unique>.nc or <filename>YYYYMMDD.nc if the \`o\` option is not provided"
     echo # We use 80 columns wide help:    # ---------------------------------------------------------------------------- #
     echo "Options:"
     echo "    -h                           Print this help message and exit."
-    echo "    -o <filename>                Appended name of the output file. If not provided, this defaults to the date:"
+    echo "    -o <filename>                The name of the output file. If not provided, the attribute name is provided."
+    echo "                                 If the string 'attr' is part of the filename, the attribute name will be"
+    echo "                                 replace this."
+    echo "    -u <unique>                  Appended name of the output file. If not provided, this defaults to the date:"
     echo "                                 YYYYMMDD."
     echo "    -a <attr1> [-a <attr2> ...]  Name of the variable / attribute in the input files that should be saved."
     echo "    -i <file1> [-i <file2> ...]  Input files to concatenate. You may use the asterisk, \`*\`, for files that"
@@ -32,16 +36,20 @@ usage() {
     echo "                                 See the examples below."
     echo
     echo "Examples:"
-    echo "    \$ $0 -o new -a TREFHT -i 1850-01.nc -i 1850-02.nc -i 1850-03.nc -a FLNT"
+    echo "    \$ $0 -o attr-hello -a TREFHT -i 1850-01.nc -i 1850-02.nc -i 1850-03.nc -a FLNT"
+    echo "    This creates two files, TREFHT-hello20231208.nc and FLNT-hello20231208.nc (20231208 is today's date), from"
+    echo "    the three files 1850-01.nc, 1850-02.nc and 1850-03.nc."
+    echo
+    echo "    \$ $0 -u new -a TREFHT -i 1850-01.nc -i 1850-02.nc -i 1850-03.nc -a FLNT"
     echo "    This creates two files, TREFHTnew.nc and FLNTnew.nc, from the three files 1850-01.nc, 1850-02.nc and"
     echo "    1850-03.nc."
     echo
-    echo "    \$ $0 -o new2 -a TREFHT -i 1850-11.nc -i 1850-12.nc -i 1851-01.nc -a FLNT -x new"
+    echo "    \$ $0 -u new2 -a TREFHT -i 1850-11.nc -i 1850-12.nc -i 1851-01.nc -a FLNT -x new"
     echo "    This extends the previous two files, TREFHTnew.nc and FLNTnew.nc, with the attributes from the three files"
     echo "    1850-11.nc, 1850-12.nc and 1851-01.nc."
     echo
-    echo "    \$ $0 -o first -a FLNT -a FSNT -i '1850-*' -i '1852-*'"
-    echo "    \$ $0 -o second -a FLNT -a FSNT -i '1853-*' -i 1855-07.nc -x first"
+    echo "    \$ $0 -u first -a FLNT -a FSNT -i '1850-*' -i '1852-*'"
+    echo "    \$ $0 -u second -a FLNT -a FSNT -i '1853-*' -i 1855-07.nc -x first"
     echo "    This will first create two files (FLNTfirst.nc and FSNTfirst.nc) that span 24 months (1850 and 1852), and"
     echo "    then those two will be expanded with the year 1853 and the month 1855/07. The files FLNTfirst.nc and"
     echo "    FSNTfirst.nc will be deleted and we are left with FLNTsecond.nc and FSNTsecond.nc."
@@ -52,10 +60,13 @@ usage() {
 }
 
 # Parse options using getopts
-while getopts "o:a:i:x:h" opt; do
+while getopts "o:u:a:i:x:h" opt; do
     case "$opt" in
     o)
         OUTPUT="$OPTARG"
+        ;;
+    u)
+        UNIQUE="$OPTARG"
         ;;
     x)
         EXISTING="$OPTARG"
@@ -128,14 +139,16 @@ done
 
 SAVEDIR="$(dirname "${INPUTS_EXP[0]}")/"
 
-if [[ -z "$OUTPUT" ]]; then
-    OUTPUT="$(date '+%Y%m%d')"
+if [[ -z "$UNIQUE" ]]; then
+    UNIQUE="$(date '+%Y%m%d')"
 fi
 
 # DONE CHECKING THE INPUTS AND STUFF, LETS IMPLEMENT THE PROGRAM --------------------- #
 
 # Function that checks if the input files and the existing file (specified with the -x
 # option) have overlapping time ranges.
+# TODO: do the ncrcat create end dates that would always overlap? I.e., should we expect
+# there to be equal start dates and end dates?
 check_time_ranges() {
     # Last time of first file
     last_time_1=$(ncdump "$1" -i -v time | sed -e '1,/data:/d' -e '$d' | tail -1 | awk '{print $(NF-1)}' | tr -d '",')
@@ -145,12 +158,13 @@ check_time_ranges() {
     last_time_1_float="$(date -d "$last_time_1" +%s)"
     last_time_2_float="$(date -d "$last_time_2" +%s)"
     if [[ "$last_time_1_float" -ge "$last_time_2_float" ]]; then
+        echo "$(date '+%Y%m%d-%H:%M:%S') |"
         echo "    Error: The file you want to extend with the \`-x\` option has end time sooner"
         echo "    than the earliest time of the input files; THEY MIGHT OVERLAP. Make sure the"
         echo "    input files are given in the correct order, and fix the issue manually."
-        echo "    Last time of $1: $last_time_1 (first time: $last_time_1_2)"
-        echo "    First time of inputs ($2): $last_time_2"
-        echo "    Last time of inputs ($3): $last_time_3"
+        echo "    * Last time of $1: $last_time_1 (first time: $last_time_1_2)"
+        echo "    * First time of inputs ($2): $last_time_2"
+        echo "    * Last time of inputs ($3): $last_time_3"
         return 1
     else
         return 0
@@ -159,35 +173,66 @@ check_time_ranges() {
 
 # Loop over attributes
 for attr in "${ATTRS[@]}"; do
+    # Create file name based on OUTPUT and UNIQUE.
+    if [[ -z "$OUTPUT" ]]; then
+        filename="$attr"
+    elif [[ "$OUTPUT" == *"attr"* ]]; then
+        filename="${OUTPUT//attr/$attr}"
+    else
+        filename="$OUTPUT"
+    fi
     # Check if the file exists. If yes, skip to the next, but notify the user.
-    if test -f "$SAVEDIR$attr$OUTPUT.nc"; then
-        echo "$(date '+%Y%m%d-%H:%M:%S') $SAVEDIR$attr$OUTPUT.nc exists."
+    if test -f "$SAVEDIR$filename$UNIQUE.nc"; then
+        echo "$(date '+%Y%m%d-%H:%M:%S') $SAVEDIR$filename$UNIQUE.nc exists."
         continue
     else
-        echo "$(date '+%Y%m%d-%H:%M:%S') Creating $SAVEDIR$attr$OUTPUT.nc..."
+        echo "$(date '+%Y%m%d-%H:%M:%S') Creating $SAVEDIR$filename$UNIQUE.nc..."
     fi
-    # Let us make sure the existing file, the file we want to extend, actually exists.
-    if [[ ! -f "$SAVEDIR$attr$EXISTING.nc" ]]; then
-        echo "$(date '+%Y%m%d-%H:%M:%S') The file $SAVEDIR$attr$EXISTING.nc does not exist, so"
-        echo "    I cannot expand it. Instead, I am creating $SAVEDIR$attr$OUTPUT.nc."
-        EXISTING=""
+    if [[ "$EXISTING" == "latest" ]]; then
+        # We check if there is only one file with the same name available. If this is
+        # the case, we know this is the file we should expand.
+        out=$(find . -wholename "$SAVEDIR$filename*" | wc -l)
+        if [[ "$out" -eq 0 ]];then
+            EXISTING_loop=""
+        elif [[ "$out" -eq 1 ]]; then
+            string=$(find . -wholename "$SAVEDIR$filename*")
+            prefix="$SAVEDIR$filename"
+            suffix=".nc"
+            EXISTING_loop=${string#"$prefix"}
+            EXISTING_loop=${EXISTING_loop%"$suffix"}
+            echo "$(date '+%Y%m%d-%H:%M:%S') Found $SAVEDIR$filename$EXISTING_loop.nc that can be extended."
+        else
+            echo "$(date '+%Y%m%d-%H:%M:%S') Too many existing files named $SAVEDIR$filename. Skipping $SAVEDIR$filename$UNIQUE.nc."
+            continue
+        fi
+        # break
+    elif [[ -n "$EXISTING" ]] && [[ ! -f "$SAVEDIR$filename$EXISTING.nc" ]]; then
+        # Let us make sure the existing file, the file we want to extend, actually
+        # exists.
+        echo "$(date '+%Y%m%d-%H:%M:%S') |"
+        echo "    The file $SAVEDIR$filename$EXISTING.nc does not exist, so I cannot expand"
+        echo "    it. Instead, I am creating $SAVEDIR$filename$UNIQUE.nc."
+        EXISTING_loop=""
+    else
+        EXISTING_loop="$EXISTING"
     fi
-    if [[ -z "$EXISTING" ]]; then
+    if [[ -z "$EXISTING_loop" ]]; then
         # If we create a brand new file.
-        ncrcat -4 -o "$SAVEDIR$attr$OUTPUT.nc" -v "$attr" "${INPUTS_EXP[@]}"
+        ncrcat -4 -o "$SAVEDIR$filename$UNIQUE.nc" -v "$attr" "${INPUTS_EXP[@]}"
     else # -- or --
         # If we create an output file that should be the extension of a previously made
         # file.
         # Let us first check if the input files and original files have a time overlap.
-        if ! check_time_ranges "$SAVEDIR$attr$EXISTING.nc" "${INPUTS_EXP[0]}" "${INPUTS_EXP[-1]}"; then
+        if ! check_time_ranges "$SAVEDIR$filename$EXISTING_loop.nc" "${INPUTS_EXP[0]}" "${INPUTS_EXP[-1]}"; then
             continue
         fi
-        ncrcat -4 -o "$SAVEDIR$attr$OUTPUT.nc" -v "$attr" "${INPUTS_EXP[@]}"
-        ncrcat -4 -o "$SAVEDIR"output-combined.nc -v "$attr" "$SAVEDIR$attr$EXISTING.nc" "$SAVEDIR$attr$OUTPUT.nc"
-        rm "$SAVEDIR$attr$OUTPUT.nc"
-        rm "$SAVEDIR$attr$EXISTING.nc"
+        ncrcat -4 -o "$SAVEDIR$filename$UNIQUE.nc" -v "$attr" "${INPUTS_EXP[@]}"
+        ncrcat -4 -o "$SAVEDIR"output-combined.nc -v "$attr" "$SAVEDIR$filename$EXISTING_loop.nc" "$SAVEDIR$filename$UNIQUE.nc"
+        rm "$SAVEDIR$filename$UNIQUE.nc"
+        # Instead of deleting old data, we rename them with the "-extended" suffix.
+        mv "$SAVEDIR$filename$EXISTING_loop.nc" "$SAVEDIR$filename$EXISTING_loop-extended.nc"
         # We save using the OUTPUT variable instead of the older (original) name, since
         # often the date is used, and it makes sense to update this to the current date.
-        mv "$SAVEDIR"output-combined.nc "$SAVEDIR$attr$OUTPUT.nc"
+        mv "$SAVEDIR"output-combined.nc "$SAVEDIR$filename$UNIQUE.nc"
     fi
 done

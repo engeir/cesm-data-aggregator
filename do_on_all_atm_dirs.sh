@@ -32,14 +32,14 @@ DIRS=$(ls -d ./*/atm/hist)
 # Or define a custom set of dirs (but this is more easily done inside the loop, in the
 # "case" statement):
 # DIRS="one\ntwo"
-VAR="-a TREFHT -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a so4_a1 -a so4_a2 -a so4_a3 -a TROP_P -a U"
+VAR="-a TREFHT -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a TMso4_a1 -a TMso4_a2 -a TMso4_a3 -a TROP_P -a U -a OH -a SST"
 FREQ="h0"
 # Relevant variables for h0:
-#   -a TREFHT -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a so4_a1 -a so4_a2 -a so4_a3 -a TROP_P -a U
+#   -a TREFHT -a AODVISstdn -a FLNT -a FSNT -a TMSO2 -a ICEFRAC -a TMso4_a1 -a TMso4_a2 -a TMso4_a3 -a TROP_P -a U -a OH -a SST
 # Relevant variables for h1:
 #   -a TREFHT -a AODVISstdn -a FLNT -a FSNT
 
-OUTPUT="-$FREQ-$(date '+%Y%m%d')"
+OUTPUT="attr-$FREQ-"
 # Loop over all simulation directories.
 for p in $DIRS; do
     tmpdir="$p"
@@ -72,10 +72,10 @@ for p in $DIRS; do
     # save it as well, and instead specify the date ourselves (above).
     cd "$p" || exit 1
     echo "Moving into $PWD"
-    echo "$HERE"/gen_agg_nco.sh "$VAR" -i \""$tmpdir"*cam."$FREQ"*\" -o "$OUTPUT" -x -"$FREQ"-20230828
+    echo "$HERE"/gen_agg_nco.sh "$VAR" -i \""$tmpdir"*cam."$FREQ"*\" -o "$OUTPUT" -x "latest"
     # We need to allow word splitting of $VAR so that they are treated as two separate
     # attributes in the command.
-    "$HERE"/gen_agg_nco.sh $VAR -i "$tmpdir*cam.$FREQ*" -o "$OUTPUT" -x -"$FREQ"-20230828
+    "$HERE"/gen_agg_nco.sh $VAR -i "$tmpdir*cam.$FREQ*" -o "$OUTPUT" -x "latest"
     cd - 1>/dev/null || exit 1 && echo "Going back to $PWD"
     echo ""
 done
