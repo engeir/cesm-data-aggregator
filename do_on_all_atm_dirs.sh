@@ -10,8 +10,8 @@
 #SBATCH --time=00-01:50:00
 #
 # Other parameters:
-#SBATCH --partition=bigmem
-#SBATCH --mem=100G
+#SBATCH --qos=short
+# comment out SBATCH --mem=100G
 #SBATCH --nodes=1
 
 # Run as sbatch ./do_on_all_atm_dirs.sh
@@ -22,7 +22,7 @@ set -o nounset # Treat any unset variables as an error
 
 # Load modules
 module --quiet purge # Reset the modules to the system default
-module load NCO/5.0.3-intel-2021b
+module load NCO/5.1.3-iimpi-2022a
 
 HERE="$PWD"
 # Go to where we want to be (this script could be run from anywhere)
@@ -52,19 +52,28 @@ for p in $DIRS; do
     # want to use all directories, comment out the "*)" case as well (or remove the
     # `continue` statement), which matches everything.
     case "$tmpdir" in
-    ./e_BASELINE)
-        # We don't want to work on the `e_BASELINE` simulation. It's too long.
-        continue
-        ;;
-    *EWma1850-ens1-control*)
-        # Let us say we only want to include some simulation we just completed, for
-        # example all simulations run with the fSST1850 "compset":
-        ;;
-    *)
-        continue
-        ;;
+        ./e_BASELINE)
+            # We don't want to work on the `e_BASELINE` simulation. It's too long.
+            continue
+            ;;
+        *fSST1850-ens5*)
+            # Let us say we only want to include some simulation we just completed, for
+            # example all simulations run with the fSST1850 "compset":
+            ;;
+        *BWma1850-ens1-medium-plus)
+            continue
+            ;;
+        *BWma1850-ens*-medium-plus) ;;
+
+        *)
+            continue
+            ;;
     esac
 
+    if [[ ! "$#" -eq 0 ]] && [[ $1 == "test" ]]; then
+        echo "$tmpdir"
+        continue
+    fi
     # Step in, do work, then step out.
     # The gen_agg_nco.sh script should be able to take a bunch of files, combine them
     # and create a single `.nc` file for one or more of the variables. It should be
