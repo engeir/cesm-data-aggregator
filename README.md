@@ -1,6 +1,6 @@
 # CESM data aggregator
 
-<sup>Latest version: v0.1.0</sup> <!-- x-release-please-version -->
+<sup>Latest version: v1.0.0</sup> <!-- x-release-please-version -->
 
 ## Basic usage
 
