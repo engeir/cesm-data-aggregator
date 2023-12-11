@@ -147,9 +147,9 @@ fi
 
 # Function that checks if the input files and the existing file (specified with the -x
 # option) have overlapping time ranges.
-# TODO: do the ncrcat create end dates that would always overlap? I.e., should we expect
-# there to be equal start dates and end dates? Yes. Upon a restart, the end file is
-# added, thus there will always be overlap.
+# INFO: Upon a restart, the end file is re-generated, thus there will always be overlap.
+# Setting the fourth argument to "silent" will make it exit with an error (1), but
+# without printing the error message.
 check_time_ranges() {
     # Last time of first file
     last_time_1=$(ncdump "$1" -i -v time | sed -e '1,/data:/d' -e '$d' | tail -1 | awk '{print $(NF-1)}' | tr -d '",')
@@ -228,6 +228,8 @@ for attr in "${ATTRS[@]}"; do
         # If we create an output file that should be the extension of a previously made
         # file.
         # Let us first check if the input files and original files have a time overlap.
+        # We check this twice, since upon a restart, CESM2 creates the last file over
+        # again, which (I think) we do not need.
         if ! check_time_ranges "$SAVEDIR$filename$EXISTING_loop.nc" "${INPUTS_EXP[0]}" "${INPUTS_EXP[-1]}" "silent"; then
             if ! check_time_ranges "$SAVEDIR$filename$EXISTING_loop.nc" "${INPUTS_EXP[1]}" "${INPUTS_EXP[-1]}" "loud"; then
                 continue
