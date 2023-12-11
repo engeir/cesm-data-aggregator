@@ -148,7 +148,8 @@ fi
 # Function that checks if the input files and the existing file (specified with the -x
 # option) have overlapping time ranges.
 # TODO: do the ncrcat create end dates that would always overlap? I.e., should we expect
-# there to be equal start dates and end dates?
+# there to be equal start dates and end dates? Yes. Upon a restart, the end file is
+# added, thus there will always be overlap.
 check_time_ranges() {
     # Last time of first file
     last_time_1=$(ncdump "$1" -i -v time | sed -e '1,/data:/d' -e '$d' | tail -1 | awk '{print $(NF-1)}' | tr -d '",')
@@ -158,14 +159,18 @@ check_time_ranges() {
     last_time_1_float="$(date -d "$last_time_1" +%s)"
     last_time_2_float="$(date -d "$last_time_2" +%s)"
     if [[ "$last_time_1_float" -ge "$last_time_2_float" ]]; then
-        echo "$(date '+%Y%m%d-%H:%M:%S') |"
-        echo "    Error: The file you want to extend with the \`-x\` option has end time sooner"
-        echo "    than the earliest time of the input files; THEY MIGHT OVERLAP. Make sure the"
-        echo "    input files are given in the correct order, and fix the issue manually."
-        echo "    * Last time of $1: $last_time_1 (first time: $last_time_1_2)"
-        echo "    * First time of inputs ($2): $last_time_2"
-        echo "    * Last time of inputs ($3): $last_time_3"
-        return 1
+        if [[ "$4" == "silent" ]]; then
+            return 1
+        else
+            echo "$(date '+%Y%m%d-%H:%M:%S') |"
+            echo "    Error: The file you want to extend with the \`-x\` option has end time sooner"
+            echo "    than the earliest time of the input files; THEY MIGHT OVERLAP. Make sure the"
+            echo "    input files are given in the correct order, and fix the issue manually."
+            echo "    * Last time of $1: $last_time_1 (first time: $last_time_1_2)"
+            echo "    * First time of inputs ($2): $last_time_2"
+            echo "    * Last time of inputs ($3): $last_time_3"
+            return 1
+        fi
     else
         return 0
     fi
@@ -223,8 +228,12 @@ for attr in "${ATTRS[@]}"; do
         # If we create an output file that should be the extension of a previously made
         # file.
         # Let us first check if the input files and original files have a time overlap.
-        if ! check_time_ranges "$SAVEDIR$filename$EXISTING_loop.nc" "${INPUTS_EXP[0]}" "${INPUTS_EXP[-1]}"; then
-            continue
+        if ! check_time_ranges "$SAVEDIR$filename$EXISTING_loop.nc" "${INPUTS_EXP[0]}" "${INPUTS_EXP[-1]}" "silent"; then
+            if ! check_time_ranges "$SAVEDIR$filename$EXISTING_loop.nc" "${INPUTS_EXP[1]}" "${INPUTS_EXP[-1]}" "loud"; then
+                continue
+            else
+                INPUTS_EXP=("${INPUTS_EXP[@]:1}") #removed the 1st element
+            fi
         fi
         ncrcat -4 -o "$SAVEDIR$filename$UNIQUE.nc" -v "$attr" "${INPUTS_EXP[@]}"
         ncrcat -4 -o "$SAVEDIR"output-combined.nc -v "$attr" "$SAVEDIR$filename$EXISTING_loop.nc" "$SAVEDIR$filename$UNIQUE.nc"
