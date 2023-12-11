@@ -1,5 +1,7 @@
 # CESM data aggregator
 
+<sup>Latest version: v0.1.0</sup> <!-- x-release-please-version -->
+
 ## Basic usage
 
 This repo includes two shell scripts that both can be run alone. The
