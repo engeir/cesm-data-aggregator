@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.1](https://github.com/engeir/cesm-data-aggregator/compare/v1.0.0...v1.0.1) (2024-01-22)
+
+
+### Code Refactoring
+
+* **sc2086:** rewrite options from string to array ([3c36f44](https://github.com/engeir/cesm-data-aggregator/commit/3c36f44a9bb5f88b3d578ff68ed1b7cd32604cbf))
+
+
+### Continuous Integration
+
+* **github:** use my bot to create releases ([e15f932](https://github.com/engeir/cesm-data-aggregator/commit/e15f932954c402ec799945dd579348b13fceac08))
+
 ## 1.0.0 (2023-12-11)
 
 
