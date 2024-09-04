@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.2](https://github.com/engeir/cesm-data-aggregator/compare/v1.0.1...v1.0.2) (2024-09-04)
+
+
+### Miscellaneous
+
+* **usage:** start building simple usage CLI ([9b9fbf8](https://github.com/engeir/cesm-data-aggregator/commit/9b9fbf8397b85dce3dabaeab7d86d209407a3fa5))
+* **usage:** update name of the CLI ([987d63a](https://github.com/engeir/cesm-data-aggregator/commit/987d63a91160dd28978fad52262c42822e94635d))
+
+
+### Documentation
+
+* **zenodo:** add a zenodo config ([8cebc44](https://github.com/engeir/cesm-data-aggregator/commit/8cebc44100fe8459c82eb37fc3e1c79182aa1ed6))
+
 ## [1.0.1](https://github.com/engeir/cesm-data-aggregator/compare/v1.0.0...v1.0.1) (2024-01-22)
 
 
