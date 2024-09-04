@@ -18,12 +18,17 @@ if it does not require too much resources, or using the `sbatch` command as
 sbatch ./do_on_all_atm_dirs.sh
 ```
 
-The script `./gen_agg_nco.sh` has been written to only be run as a standard shell
-script (the `-h` flag will print a help message):
+The script `./gen_agg_nco.sh` has been written to only be run as a standard shell script
+(the `-h` flag will print a help message):
 
 ```bash
 ./gen_agg_nco.sh -h
 ```
+
+The script `do_on_all_atm_dirs.sh` is intended to be edited based on the users file
+structure and needs, most importantly the `VAR` and cases in the `case` clause to
+include or skip. `gen_agg_nco.sh` is the script doing the work, and should not need to
+be adjusted.
 
 ## Directory structure
 
@@ -34,7 +39,8 @@ the script, and must be adjusted according to the users needs.
 
 The specific directory structure is
 
-```tree
+```console
+$ ls
 e_BWma1850-control/atm/hist/
 e_BWma1850-double-overlap/atm/hist/
 e_BWma1850-ens1-2xco2/atm/hist/
@@ -53,5 +59,5 @@ DIRS=$(ls -d ./*/atm/hist)
 ## Dependencies
 
 The only dependency is [`ncrcat`](https://nco.sourceforge.net/nco.html#ncrcat). If one
-wish to run the script using `sbatch`, typically on a HPC cluster, then this must of
+wish to run the script using `sbatch`, typically on an HPC cluster, then this must of
 course also be available.

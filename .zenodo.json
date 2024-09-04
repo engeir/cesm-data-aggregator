@@ -1,0 +1,15 @@
+{
+  "creators": [
+    {
+      "orcid": "0000-0001-6709-8688",
+      "name": "Enger, Eirik Rolland",
+      "affiliation": "UiT The Arctic University of Norway (UiT)"
+    }
+  ],
+
+  "license": "MIT",
+
+  "title": "CESM data aggregator",
+
+  "keywords": ["CESM", "NCO"]
+}

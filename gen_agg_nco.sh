@@ -18,6 +18,7 @@ usage() {
     echo "Generate aggregated netCDF files, one for each attribute, from a list of time-stamped input files that all"
     echo "include the provided attributes / variables."
     echo
+    # shellcheck disable=SC2016
     echo 'The files are save as <filename><unique>.nc or <filename>YYYYMMDD.nc if the `o` option is not provided'
     echo # We use 80 columns wide help:    # ---------------------------------------------------------------------------- #
     echo "Options:"
@@ -28,10 +29,12 @@ usage() {
     echo "    -u <unique>                  Appended name of the output file. If not provided, this defaults to the date:"
     echo "                                 YYYYMMDD."
     echo "    -a <attr1> [-a <attr2> ...]  Name of the variable / attribute in the input files that should be saved."
+    # shellcheck disable=SC2016
     echo '    -i <file1> [-i <file2> ...]  Input files to concatenate. You may use the asterisk, `*`, for files that'
     echo "                                 should be expanded."
     echo "    -x <attr-file>               A previously made file of the same type as the output file that should be"
     echo "                                 extended. IT IS EXPECTED THAT THE FILE WAS CREATED BY THIS SCRIPT, therefore,"
+    # shellcheck disable=SC2016
     echo '                                 specify ONLY what would have been the `-o` value for its initial creation.'
     echo "                                 See the examples below."
     echo
@@ -92,12 +95,14 @@ done
 
 # Check if the necessary CLI exist:
 if ! command -v ncrcat &>/dev/null; then
+    # shellcheck disable=SC2016
     echo 'The command `ncrcat` must be available.'
     exit 0
 fi
 
 # Check if mandatory options are provided
 if [[ -z ${ATTRS[0]} || ${#INPUTS[@]} -eq 0 ]]; then
+    # shellcheck disable=SC2016
     echo 'You tried to run the script without providing all required options. `-a` and `-i` must be given.'
     echo
     usage
@@ -124,6 +129,7 @@ are_files_in_same_directory() {
 
 # Check if all files are in the same directory
 if ! are_files_in_same_directory "${INPUTS_EXP[0]}"; then
+    # shellcheck disable=SC2016
     echo 'Error: Files in the `-i` option are not in the same directory.'
     exit 0
 fi
@@ -131,6 +137,7 @@ fi
 # If the asterisk syntax is used, but the files do not exist (no match), we are left
 # with an empty INPUTS_EXP variable, so we check if it is empty again
 if [[ ${#INPUTS_EXP[@]} -eq 0 ]]; then
+    # shellcheck disable=SC2016
     echo 'Error: No files matching the input files provided with the `-i` option could be found.'
     exit 0
 fi
@@ -167,6 +174,7 @@ check_time_ranges() {
             return 1
         else
             echo "$(date '+%Y%m%d-%H:%M:%S') |"
+            # shellcheck disable=SC2016
             echo '    Error: The file you want to extend with the `-x` option has end time sooner'
             echo "    than the earliest time of the input files; THEY MIGHT OVERLAP. Make sure the"
             echo "    input files are given in the correct order, and fix the issue manually."

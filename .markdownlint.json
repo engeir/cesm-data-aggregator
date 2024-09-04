@@ -1,0 +1,12 @@
+{
+  "fenced-code-language": {
+    "allowed_languages": ["console", "bash", "text"],
+    "language_only": true
+  },
+  "line-length": {
+    "line_length": 88
+  },
+  "MD033": {
+    "allowed_elements": ["sup"]
+  }
+}
