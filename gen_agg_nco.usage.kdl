@@ -1,0 +1,21 @@
+# optional metadata
+name "gen_agg_nco"        # a friendly name for the CLI
+bin "gen_agg_nco"          # the name of the binary
+about "Generates aggregated variable files from CESM2 data output"    # a short description of the CLI
+version "1.0.0"      # the version of the CLI
+author "engeir"      # the author of the CLI
+license "MIT"        # license the CLI is released under
+
+# a standard flag
+flag "-v,--version" help="Print the CLI version"
+flag "-h,--help"    help="Print the CLI help"
+
+# a flag that takes a value
+flag "-u,--unique <id>"   help="A unique identifier that is appended to the output file, defaults to the current date YYYYMMDD"
+flag "-a,--attr <attr1>" help="Name of the variable / attribute in the input files that should be saved"
+flag "-i,--input <file>" help="The input file(s). Can be specified with a wildcard (e.g. *.nc)"
+flag "-o,--output <file>" help="The name of the output file"
+flag "-x,--extend-file <file>" help="A previously made file of the same type as the output file that should be extended. IT IS EXPECTED THAT THE FILE WAS CREATED BY THIS SCRIPT, therefore, specify ONLY what would have been the `-o` value for its initial creation."
+
+# arg "<dir>"  help="The directory to use" # required positional argument
+# arg "[file]" help="The file to read"     # optional positional argument

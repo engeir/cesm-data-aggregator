@@ -18,7 +18,7 @@ usage() {
     echo "Generate aggregated netCDF files, one for each attribute, from a list of time-stamped input files that all"
     echo "include the provided attributes / variables."
     echo
-    echo "The files are save as <filename><unique>.nc or <filename>YYYYMMDD.nc if the \`o\` option is not provided"
+    echo 'The files are save as <filename><unique>.nc or <filename>YYYYMMDD.nc if the `o` option is not provided'
     echo # We use 80 columns wide help:    # ---------------------------------------------------------------------------- #
     echo "Options:"
     echo "    -h                           Print this help message and exit."
@@ -28,11 +28,11 @@ usage() {
     echo "    -u <unique>                  Appended name of the output file. If not provided, this defaults to the date:"
     echo "                                 YYYYMMDD."
     echo "    -a <attr1> [-a <attr2> ...]  Name of the variable / attribute in the input files that should be saved."
-    echo "    -i <file1> [-i <file2> ...]  Input files to concatenate. You may use the asterisk, \`*\`, for files that"
+    echo '    -i <file1> [-i <file2> ...]  Input files to concatenate. You may use the asterisk, `*`, for files that'
     echo "                                 should be expanded."
     echo "    -x <attr-file>               A previously made file of the same type as the output file that should be"
     echo "                                 extended. IT IS EXPECTED THAT THE FILE WAS CREATED BY THIS SCRIPT, therefore,"
-    echo "                                 specify ONLY what would have been the \`-o\` value for its initial creation."
+    echo '                                 specify ONLY what would have been the `-o` value for its initial creation.'
     echo "                                 See the examples below."
     echo
     echo "Examples:"
@@ -60,41 +60,45 @@ usage() {
 }
 
 # Parse options using getopts
-while getopts "o:u:a:i:x:h" opt; do
+while getopts "o:u:a:i:x:h:v" opt; do
     case "$opt" in
-    o)
-        OUTPUT="$OPTARG"
-        ;;
-    u)
-        UNIQUE="$OPTARG"
-        ;;
-    x)
-        EXISTING="$OPTARG"
-        ;;
-    a)
-        ATTRS+=("$OPTARG")
-        ;;
-    i)
-        INPUTS+=("$OPTARG")
-        ;;
-    h)
-        usage
-        ;;
-    *)
-        usage
-        ;;
+        o)
+            OUTPUT="$OPTARG"
+            ;;
+        u)
+            UNIQUE="$OPTARG"
+            ;;
+        x)
+            EXISTING="$OPTARG"
+            ;;
+        a)
+            ATTRS+=("$OPTARG")
+            ;;
+        i)
+            INPUTS+=("$OPTARG")
+            ;;
+        h)
+            usage
+            ;;
+        v)
+            echo "Version: 0.1"
+            exit 0
+            ;;
+        *)
+            usage
+            ;;
     esac
 done
 
 # Check if the necessary CLI exist:
 if ! command -v ncrcat &>/dev/null; then
-    echo "The command \`ncrcat\` must be available."
+    echo 'The command `ncrcat` must be available.'
     exit 0
 fi
 
 # Check if mandatory options are provided
-if [[ -z "${ATTRS[0]}" || "${#INPUTS[@]}" -eq 0 ]]; then
-    echo "You tried to run the script without providing all required options. \`-a\` and \`-i\` must be given."
+if [[ -z ${ATTRS[0]} || ${#INPUTS[@]} -eq 0 ]]; then
+    echo 'You tried to run the script without providing all required options. `-a` and `-i` must be given.'
     echo
     usage
 fi
@@ -102,7 +106,7 @@ fi
 # Expand inputs if asterisk is given
 for in_file in "${INPUTS[@]}"; do
     shopt -s nullglob
-    INPUTS_EXP+=($in_file)
+    INPUTS_EXP+=("$in_file")
     shopt -u nullglob
 done
 
@@ -120,18 +124,18 @@ are_files_in_same_directory() {
 
 # Check if all files are in the same directory
 if ! are_files_in_same_directory "${INPUTS_EXP[0]}"; then
-    echo "Error: Files in the \`-i\` option are not in the same directory."
+    echo 'Error: Files in the `-i` option are not in the same directory.'
     exit 0
 fi
 
 # If the asterisk syntax is used, but the files do not exist (no match), we are left
 # with an empty INPUTS_EXP variable, so we check if it is empty again
-if [[ "${#INPUTS_EXP[@]}" -eq 0 ]]; then
-    echo "Error: No files matching the input files provided with the \`-i\` option could be found."
+if [[ ${#INPUTS_EXP[@]} -eq 0 ]]; then
+    echo 'Error: No files matching the input files provided with the `-i` option could be found.'
     exit 0
 fi
 for found_files in "${INPUTS_EXP[@]}"; do
-    if [[ ! -f "$found_files" ]]; then
+    if [[ ! -f $found_files ]]; then
         echo "Error: I cannot find the file $found_files"
         exit 0
     fi
@@ -139,7 +143,7 @@ done
 
 SAVEDIR="$(dirname "${INPUTS_EXP[0]}")/"
 
-if [[ -z "$UNIQUE" ]]; then
+if [[ -z $UNIQUE ]]; then
     UNIQUE="$(date '+%Y%m%d')"
 fi
 
@@ -158,12 +162,12 @@ check_time_ranges() {
     last_time_3=$(ncdump "$3" -i -v time | sed -e '1,/data:/d' -e '$d' | tail -1 | awk '{print $(NF-1)}' | tr -d '",')
     last_time_1_float="$(date -d "$last_time_1" +%s)"
     last_time_2_float="$(date -d "$last_time_2" +%s)"
-    if [[ "$last_time_1_float" -ge "$last_time_2_float" ]]; then
-        if [[ "$4" == "silent" ]]; then
+    if [[ $last_time_1_float -ge $last_time_2_float ]]; then
+        if [[ $4 == "silent" ]]; then
             return 1
         else
             echo "$(date '+%Y%m%d-%H:%M:%S') |"
-            echo "    Error: The file you want to extend with the \`-x\` option has end time sooner"
+            echo '    Error: The file you want to extend with the `-x` option has end time sooner'
             echo "    than the earliest time of the input files; THEY MIGHT OVERLAP. Make sure the"
             echo "    input files are given in the correct order, and fix the issue manually."
             echo "    * Last time of $1: $last_time_1 (first time: $last_time_1_2)"
@@ -179,9 +183,9 @@ check_time_ranges() {
 # Loop over attributes
 for attr in "${ATTRS[@]}"; do
     # Create file name based on OUTPUT and UNIQUE.
-    if [[ -z "$OUTPUT" ]]; then
+    if [[ -z $OUTPUT ]]; then
         filename="$attr"
-    elif [[ "$OUTPUT" == *"attr"* ]]; then
+    elif [[ $OUTPUT == *"attr"* ]]; then
         filename="${OUTPUT//attr/$attr}"
     else
         filename="$OUTPUT"
@@ -193,13 +197,13 @@ for attr in "${ATTRS[@]}"; do
     else
         echo "$(date '+%Y%m%d-%H:%M:%S') Creating $SAVEDIR$filename$UNIQUE.nc..."
     fi
-    if [[ "$EXISTING" == "latest" ]]; then
+    if [[ $EXISTING == "latest" ]]; then
         # We check if there is only one file with the same name available. If this is
         # the case, we know this is the file we should expand.
         out=$(find . -wholename "$SAVEDIR$filename*" | wc -l)
-        if [[ "$out" -eq 0 ]];then
+        if [[ $out -eq 0 ]]; then
             EXISTING_loop=""
-        elif [[ "$out" -eq 1 ]]; then
+        elif [[ $out -eq 1 ]]; then
             string=$(find . -wholename "$SAVEDIR$filename*")
             prefix="$SAVEDIR$filename"
             suffix=".nc"
@@ -211,7 +215,7 @@ for attr in "${ATTRS[@]}"; do
             continue
         fi
         # break
-    elif [[ -n "$EXISTING" ]] && [[ ! -f "$SAVEDIR$filename$EXISTING.nc" ]]; then
+    elif [[ -n $EXISTING ]] && [[ ! -f "$SAVEDIR$filename$EXISTING.nc" ]]; then
         # Let us make sure the existing file, the file we want to extend, actually
         # exists.
         echo "$(date '+%Y%m%d-%H:%M:%S') |"
@@ -221,7 +225,7 @@ for attr in "${ATTRS[@]}"; do
     else
         EXISTING_loop="$EXISTING"
     fi
-    if [[ -z "$EXISTING_loop" ]]; then
+    if [[ -z $EXISTING_loop ]]; then
         # If we create a brand new file.
         ncrcat -4 -o "$SAVEDIR$filename$UNIQUE.nc" -v "$attr" "${INPUTS_EXP[@]}"
     else # -- or --
