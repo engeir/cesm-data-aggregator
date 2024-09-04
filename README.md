@@ -1,7 +1,7 @@
 # CESM data aggregator
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13680833.svg)](https://zenodo.org/doi/10.5281/zenodo.13680833)
-<sup>Latest version: v1.0.2</sup> <!-- x-release-please-version -->
+<sup>Latest version: v1.0.3</sup> <!-- x-release-please-version -->
 
 ## Basic usage
 

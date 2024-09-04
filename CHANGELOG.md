@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/engeir/cesm-data-aggregator/compare/v1.0.2...v1.0.3) (2024-09-04)
+
+
+### Documentation
+
+* **zenodo:** add zenodo badge ([d3f3849](https://github.com/engeir/cesm-data-aggregator/commit/d3f3849ee70cbdf8f5e818f6b6bf2bc0eceffe53))
+
 ## [1.0.2](https://github.com/engeir/cesm-data-aggregator/compare/v1.0.1...v1.0.2) (2024-09-04)
 
 
